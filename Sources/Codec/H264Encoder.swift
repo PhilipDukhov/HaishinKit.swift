@@ -234,6 +234,7 @@ public final class H264Encoder {
                 status = session.prepareToEncodeFrame()
                 guard status == noErr else {
                     logger.error("setup failed VTCompressionSessionPrepareToEncodeFrames. Size = \(width)x\(height)")
+                    _session = nil
                     return nil
                 }
             }

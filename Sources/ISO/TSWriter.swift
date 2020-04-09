@@ -151,7 +151,7 @@ public class TSWriter: Running {
             bytes.append(packet.data)
         }
 
-        write(bytes)
+        write(PID, presentationTimeStamp: presentationTimeStamp, data: bytes)
     }
 
     func rotateFileHandle(_ timestamp: CMTime) {
@@ -163,11 +163,11 @@ public class TSWriter: Running {
         rotatedTimestamp = timestamp
     }
 
-    func write(_ data: Data) {
+    func write(_ PID: UInt16, presentationTimeStamp: CMTime, data: Data) {
         delegate?.didOutput(data)
     }
 
-    final func writeProgram() {
+    func writeProgram() {
         PMT.PCRPID = PCRPID
         var bytes = Data()
         var packets: [TSPacket] = []
@@ -176,7 +176,7 @@ public class TSWriter: Running {
         for packet in packets {
             bytes.append(packet.data)
         }
-        write(bytes)
+        delegate?.didOutput(bytes)
     }
 
     final func writeProgramIfNeeded() {
@@ -354,14 +354,14 @@ class TSFileWriter: TSWriter {
         rotatedTimestamp = timestamp
     }
 
-    override func write(_ data: Data) {
+    override func write(_ PID: UInt16, presentationTimeStamp: CMTime, data: Data) {
         nstry({
             self.currentFileHandle?.write(data)
         }, { exception in
             self.currentFileHandle?.write(data)
             logger.warn("\(exception)")
         })
-        super.write(data)
+        super.write(PID, presentationTimeStamp: presentationTimeStamp, data: data)
     }
 
     override func stopRunning() {
@@ -388,5 +388,29 @@ class TSFileWriter: TSWriter {
             }
         }
         files.removeAll()
+    }
+}
+
+public protocol TSPIDWriterDelegate: TSWriterDelegate {
+    func didOutput(_ PID: UInt16, presentationTimeStamp: CMTime, data: Data)
+}
+
+extension TSPIDWriterDelegate {
+    public func didOutput(_ data: Data) { }
+}
+
+public class TSPIDWriter: TSWriter {
+    public var pidDelegate: TSPIDWriterDelegate?
+    public override var delegate: TSWriterDelegate? {
+        get { pidDelegate }
+        set { pidDelegate = newValue as? TSPIDWriterDelegate }
+    }
+    
+    override func write(_ PID: UInt16, presentationTimeStamp: CMTime, data: Data) {
+        pidDelegate?.didOutput(PID, presentationTimeStamp: presentationTimeStamp, data: data)
+    }
+    
+    override func writeProgram() {
+        
     }
 }
