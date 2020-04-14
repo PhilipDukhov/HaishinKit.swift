@@ -57,13 +57,48 @@ extension GLHKView: GLKViewDelegate {
     // MARK: GLKViewDelegate
     public func glkView(_ view: GLKView, drawIn rect: CGRect) {
         glClear(GLbitfield(GL_COLOR_BUFFER_BIT))
-        guard let displayImage: CIImage = displayImage else {
+        guard var displayImage: CIImage = displayImage else {
             return
+        }
+        if #available(iOS 11.0, *) {
+            displayImage = displayImage.oriented(orientation.imageOrientation(mirrored: position == .front))
         }
         var inRect = CGRect(x: 0, y: 0, width: CGFloat(drawableWidth), height: CGFloat(drawableHeight))
         var fromRect: CGRect = displayImage.extent
         VideoGravityUtil.calculate(videoGravity, inRect: &inRect, fromRect: &fromRect)
         currentStream?.mixer.videoIO.context?.draw(displayImage, in: inRect, from: fromRect)
+    }
+}
+
+private extension AVCaptureVideoOrientation {
+    func imageOrientation(mirrored: Bool) -> CGImagePropertyOrientation {
+        switch self {
+            case .landscapeLeft:
+                if mirrored {
+                    return .leftMirrored
+                }
+                return .left
+            
+            case .landscapeRight:
+                if mirrored {
+                    return .rightMirrored
+                }
+                return .right
+            
+            case .portrait:
+                if mirrored {
+                    return .upMirrored
+                }
+                return .up
+            
+            case .portraitUpsideDown:
+                if mirrored {
+                    return .downMirrored
+                }
+                return .down
+            @unknown default:
+                return .up
+        }
     }
 }
 
