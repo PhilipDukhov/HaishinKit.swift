@@ -75,13 +75,13 @@ private extension AVCaptureVideoOrientation {
         switch self {
             case .landscapeLeft:
                 if mirrored {
-                    return .leftMirrored
+                    return .rightMirrored
                 }
                 return .left
             
             case .landscapeRight:
                 if mirrored {
-                    return .rightMirrored
+                    return .leftMirrored
                 }
                 return .right
             
