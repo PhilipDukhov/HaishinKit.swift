@@ -166,6 +166,10 @@ public class TSWriter: Running {
     func write(_ PID: UInt16, presentationTimeStamp: CMTime, data: Data) {
         delegate?.didOutput(data)
     }
+    
+    func writeHeader(data: Data) {
+        delegate?.didOutput(data)
+    }
 
     func writeProgram() {
         PMT.PCRPID = PCRPID
@@ -176,7 +180,7 @@ public class TSWriter: Running {
         for packet in packets {
             bytes.append(packet.data)
         }
-        delegate?.didOutput(bytes)
+        writeHeader(data: bytes)
     }
 
     final func writeProgramIfNeeded() {
@@ -392,6 +396,7 @@ class TSFileWriter: TSWriter {
 }
 
 public protocol TSPIDWriterDelegate: TSWriterDelegate {
+    func didOutputHeader(data: Data)
     func didOutput(_ PID: UInt16, presentationTimeStamp: CMTime, data: Data)
 }
 
@@ -406,11 +411,15 @@ public class TSPIDWriter: TSWriter {
         set { pidDelegate = newValue as? TSPIDWriterDelegate }
     }
     
+    public init() {
+        super.init(segmentDuration: .infinity)
+    }
+    
     override func write(_ PID: UInt16, presentationTimeStamp: CMTime, data: Data) {
         pidDelegate?.didOutput(PID, presentationTimeStamp: presentationTimeStamp, data: data)
     }
     
-    override func writeProgram() {
-        
+    override func writeHeader(data: Data) {
+        pidDelegate?.didOutputHeader(data: data)
     }
 }
