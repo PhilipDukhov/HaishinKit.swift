@@ -214,7 +214,7 @@ public final class H264Encoder {
     private var session: VTCompressionSession? {
         get {
             if _session == nil {
-                guard VTCompressionSessionCreate(
+                let res = VTCompressionSessionCreate(
                     allocator: kCFAllocatorDefault,
                     width: width,
                     height: height,
@@ -225,8 +225,9 @@ public final class H264Encoder {
                     outputCallback: callback,
                     refcon: Unmanaged.passUnretained(self).toOpaque(),
                     compressionSessionOut: &_session
-                    ) == noErr, let session = _session else {
-                    logger.warn("create a VTCompressionSessionCreate")
+                )
+                guard res == noErr, let session = _session else {
+                    logger.warn("create a VTCompressionSessionCreate", res)
                     return nil
                 }
                 invalidateSession = false
