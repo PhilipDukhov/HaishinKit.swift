@@ -6,7 +6,7 @@ import AVFoundation
   - http://wiki.multimedia.cx/index.php?title=MPEG-4_Audio#Audio_Specific_Config
   - http://wiki.multimedia.cx/?title=Understanding_AAC
  */
-struct AudioSpecificConfig {
+public struct AudioSpecificConfig {
     static let ADTSHeaderSize: Int = 7
 
     let type: AudioObjectType
@@ -14,7 +14,7 @@ struct AudioSpecificConfig {
     let channel: ChannelConfiguration
     let frameLengthFlag: Bool = false
 
-    var bytes: [UInt8] {
+    public var bytes: [UInt8] {
         var bytes: [UInt8] = [UInt8](repeating: 0, count: 2)
         bytes[0] = type.rawValue << 3 | (frequency.rawValue >> 1)
         bytes[1] = (frequency.rawValue & 0x1) << 7 | (channel.rawValue & 0xF) << 3
@@ -39,14 +39,14 @@ struct AudioSpecificConfig {
         self.channel = channel
     }
 
-    init(formatDescription: CMFormatDescription) {
+    public init(formatDescription: CMFormatDescription) {
         let asbd: AudioStreamBasicDescription = CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription)!.pointee
         type = AudioObjectType(objectID: MPEG4ObjectID(rawValue: Int(asbd.mFormatFlags))!)
         frequency = SamplingFrequency(sampleRate: asbd.mSampleRate)
         channel = ChannelConfiguration(rawValue: UInt8(asbd.mChannelsPerFrame))!
     }
 
-    func adts(_ length: Int) -> [UInt8] {
+    public func adts(_ length: Int) -> [UInt8] {
         let size: Int = 7
         let fullSize: Int = size + length
         var adts: [UInt8] = [UInt8](repeating: 0x00, count: size)
@@ -77,7 +77,7 @@ struct AudioSpecificConfig {
 
 extension AudioSpecificConfig: CustomDebugStringConvertible {
     // MARK: CustomDebugStringConvertible
-    var debugDescription: String {
+    public var debugDescription: String {
         Mirror(reflecting: self).debugDescription
     }
 }
