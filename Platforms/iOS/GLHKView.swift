@@ -61,7 +61,7 @@ extension GLHKView: GLKViewDelegate {
             return
         }
         if #available(iOS 11.0, *) {
-            displayImage = displayImage.oriented(orientation.imageOrientation(mirrored: position == .front))
+            displayImage = displayImage.oriented(orientation.imageOrientation)
         }
         var inRect = CGRect(x: 0, y: 0, width: CGFloat(drawableWidth), height: CGFloat(drawableHeight))
         var fromRect: CGRect = displayImage.extent
@@ -71,30 +71,18 @@ extension GLHKView: GLKViewDelegate {
 }
 
 private extension AVCaptureVideoOrientation {
-    func imageOrientation(mirrored: Bool) -> CGImagePropertyOrientation {
+    var imageOrientation: CGImagePropertyOrientation {
         switch self {
             case .landscapeLeft:
-                if mirrored {
-                    return .rightMirrored
-                }
                 return .left
             
             case .landscapeRight:
-                if mirrored {
-                    return .leftMirrored
-                }
                 return .right
             
             case .portrait:
-                if mirrored {
-                    return .upMirrored
-                }
                 return .up
             
             case .portraitUpsideDown:
-                if mirrored {
-                    return .downMirrored
-                }
                 return .down
             @unknown default:
                 return .up
